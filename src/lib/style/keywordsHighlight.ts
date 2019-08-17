@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { randomColor } from '../../utils/utils';
 let matchNameReg = /(?<=\/\*(=+)\s*)([A-Z]+|[A-Z]+\s*-*\s*[A-Z]+)(?=\s*\=+\*\/)/g;
 let testEndReg = /\s*-+\s*END/gi;
-let { window, Position, Range } = vscode;
 
 interface A {
   range: vscode.Range;
@@ -26,7 +25,7 @@ const unsubscribe = () => {
 
 export const keywordsHighlight = (settings: vscode.WorkspaceConfiguration) => {
   let closedColors = [];
-  let activeTextEditor = window.activeTextEditor;
+  let activeTextEditor = vscode.window.activeTextEditor;
   let document = activeTextEditor.document;
   let { lineCount, lineAt } = document;
   let startLine = 0;
@@ -41,9 +40,9 @@ export const keywordsHighlight = (settings: vscode.WorkspaceConfiguration) => {
         if (a > 0) {
           let startChar = a;
           let endChar = startChar + matches[index].length;
-          let startPos = new Position(line, startChar);
-          let endPos = new Position(line, endChar);
-          let range = new Range(startPos, endPos);
+          let startPos = new vscode.Position(line, startChar);
+          let endPos = new vscode.Position(line, endChar);
+          let range = new vscode.Range(startPos, endPos);
 
           if (testEndReg.test(matches[index])) {
             style = closedColors.pop();

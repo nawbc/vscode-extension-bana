@@ -1,8 +1,8 @@
 {
   "name": "vscode-extension-muguet",
   "displayName": "vscode-extension-muguet",
-  "description": "",
   "version": "0.0.1",
+  "description": "a tool collection for muguet ui development",
   "engines": {
     "vscode": "^1.36.0"
   },
@@ -32,17 +32,22 @@
     "keybindings": [
       {
         "command": "muguet.blockAnnotation",
-        "key": "ctrl+alt+]",
+        "key": "alt+]",
         "when": "editorTextFocus"
       },
       {
         "command": "muguet.detailAnnotation",
-        "key": "ctrl+alt+[",
+        "key": "ctrl+alt+d",
         "when": "editorTextFocus"
       },
       {
         "command": "muguet.titleAnnotation",
-        "key": "ctrl+alt+0",
+        "key": "ctrl+alt+t",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "muguet.console",
+        "key": "alt+[",
         "when": "editorTextFocus"
       }
     ],
@@ -55,27 +60,37 @@
           "default": true,
           "description": "Enable or disable the muguet"
         },
-        "muguet.width": {
+        "muguet.annotation.width": {
           "type": "number",
           "default": 100,
-          "description": "annotation /* distance from text"
+          "description": "annotation width"
         },
-        "muguet.annotationIntends": {
+        "muguet.annotation.intends": {
           "type": "number",
           "default": 6,
           "description": "annotation /* distance from text"
         },
-        "muguet.defaultStyle": {
+        "muguet.annotation.style": {
           "type": "object",
-          "description": "Default style for all customized keywords",
+          "description": "custom for keywords highlight style",
           "properties": {
             "color": {
-              "type": "string",
-              "description": ""
+              "type": "string"
             },
             "backgroundColor": {
-              "type": "string",
-              "description": ""
+              "type": "string"
+            }
+          }
+        },
+        "muguet.console.style": {
+          "type": "object",
+          "description": "custom for console style",
+          "properties": {
+            "color": {
+              "type": "string"
+            },
+            "font-size": {
+              "type": "string"
             }
           }
         },
@@ -91,12 +106,10 @@
             "**/*.css",
             "**/*.scss"
           ],
-          "description": "",
           "items": {
             "anyOf": [
               {
-                "type": "string",
-                "description": ""
+                "type": "string"
               }
             ]
           }
@@ -114,12 +127,10 @@
             "**/*.map",
             "**/release/**"
           ],
-          "description": "",
           "items": {
             "anyOf": [
               {
-                "type": "string",
-                "description": ""
+                "type": "string"
               }
             ]
           }

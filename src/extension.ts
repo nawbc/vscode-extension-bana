@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import { keywordsHighlight } from './lib/style/keywordsHighlight';
+import { devtoolConsole } from './lib/console/console';
+
+
 import {
   detailAnnotationMaker,
   blockAnnotationMaker
@@ -27,15 +29,17 @@ import {
 
 export function activate(context: vscode.ExtensionContext) {
 
-  let keywords_highlight = vscode.commands.registerCommand('muguet.keywordsHighlight', keywordsHighlight);
 
   let detail_annotation = vscode.commands.registerCommand('muguet.detailAnnotation', detailAnnotationMaker);
 
   let block_annotation = vscode.commands.registerCommand('muguet.blockAnnotation', blockAnnotationMaker);
 
+  let devtool_console = vscode.commands.registerCommand('muguet.console', devtoolConsole);
+
   context.subscriptions.push(
     block_annotation,
-    keywords_highlight
+    detail_annotation,
+    devtool_console
   );
 }
 

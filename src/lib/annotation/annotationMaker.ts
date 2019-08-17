@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 import { keywordsHighlight } from '../style/keywordsHighlight';
 
-
-
 type AnnotationType = 'block' | 'title' | 'detail';
 let { workspace, window } = vscode;
 let endAnnotationStack: Array<string> = [];
@@ -19,6 +17,8 @@ const supportLanguages = [
   'scss',
   'less'
 ];
+
+
 
 const insertBlockAnnotation = (
   value: string,
@@ -60,7 +60,6 @@ const blockMaker = (
   let selectionLine = <vscode.Selection>activeTextEditor.selection;
   let cursorLine = selectionLine.active.line;
   let cursorLineText = activeTextEditor.document.lineAt(cursorLine).text;
-  let endValue = endAnnotationStack.pop();
   // 是否是开始注释
   let afterEditString = null;
   // 匹配到函数和 类 自动 生成注释插入上一行
@@ -69,6 +68,7 @@ const blockMaker = (
   if (isStart) {
     if (cursorLineText === '') return;
     isStart = false;
+    vscode.window.showInformationMessage("已暂存");
     matches = cursorLineText.match(nameAnnotationReg);
     // tslint:disable-next-line: no-unused-expression
     matches && (cursorLine -= 2);
@@ -76,6 +76,8 @@ const blockMaker = (
     afterEditString = insertBlockAnnotation(transVal, 'start', { annotationWidth, annotationIntend });
   } else {
     isStart = true;
+    // 栈中取出 开始时push的值
+    let endValue = endAnnotationStack.pop();
     afterEditString = insertBlockAnnotation(endValue + ' --- END', 'end', { annotationWidth, annotationIntend });
   }
   // 插入text
@@ -91,42 +93,46 @@ const blockMaker = (
   });
 };
 
-/**======================================================================================================================
- * 
- * 
- *    editor.replace(new vscode.Range(start, end), <string>afterEditString); editor.replace(new vscode.Range(start, end), 
- *    editor.replace(new vscode.Range(start, end), <string>afterEditString);  editor.replace(new vscode.Range(start, end), 
- *    editor.replace(new vscode.Range(start, end), <string>afterEditString);
- *   
- *   
- *    
- *========================================================================================================================*/
-
-
-
-
-
-
 const detailMaker = (
-  { annotationWidth, annotationIntend },
+  { annotationWidth },
   activeTextEditor: vscode.TextEditor
 ) => {
-  let newDetailAnnotation = '/**';
+
   let startLine = activeTextEditor.selection.start.line;
   let endLine = activeTextEditor.selection.end.line;
-
-
-  for (let i = 0; i < endLine - startLine; i++) {
-    if (i === 0) {
-      for (let j = 0; j < annotationWidth; j++)
-        j === annotationWidth - 1 ?
-          newDetailAnnotation += '\n' :
-          newDetailAnnotation += '=';
+  let EOL = activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
+  let detailAnnotation = '/**';
+  for (let i = startLine; i <= endLine; i++) {
+    let lineText = activeTextEditor.document.lineAt(i).text;
+    if (i === startLine) {
+      let width = annotationWidth - 3;
+      for (let j = 0; j < width; j++) {
+        detailAnnotation += '=';
+      }
+      detailAnnotation += EOL + ' *\t\t\t' + lineText + EOL;
     }
 
+    if (i > startLine && i < endLine)
+      detailAnnotation += ' *\t\t\t' + lineText + EOL;
 
+    if (i === endLine) {
+      let width = annotationWidth - 3;
+      detailAnnotation += ' *\t\t\t' + lineText + EOL + ' *';
+      for (let j = 0; j < width; j++) {
+        detailAnnotation += '=';
+      }
+      detailAnnotation += '*/' + EOL;
+      let a = new vscode.Position(startLine, 0);
+      let b = new vscode.Position(endLine, lineText.length);
+      activeTextEditor.edit(editor => {
+        editor.replace(new vscode.Selection(a, b), detailAnnotation);
+      }).then((bool) => {
+        if (bool) {
+
+        }
+      })
+    }
   }
-
 }
 
 const titleMaker = (
@@ -142,8 +148,8 @@ const maker = (type: AnnotationType) => {
   let document = activeTextEditor.document;
   let language = document.languageId;
   let options = {
-    annotationWidth: settings.get('width', 100),
-    annotationIntend: settings.get('annotationIntends', 6)
+    annotationWidth: settings.get('annotation.width', 100),
+    annotationIntend: settings.get('annotation.intends', 6)
   };
 
   if (!activeTextEditor || !activeTextEditor.document) return false;

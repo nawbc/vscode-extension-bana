@@ -2,7 +2,10 @@
   "eslint.enable": false,
   "cSpell.ignoreWords": [
     "bana",
+    "cconsole",
     "comments",
+    "console",
+    "devtool",
     "muguet"
   ]
 }
