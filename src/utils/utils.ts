@@ -1,5 +1,15 @@
 import * as vscode from 'vscode';
 
+export const supportLanguages = [
+  'typescript',
+  'typescriptreact',
+  'javascript',
+  'javascriptreact',
+  'css',
+  'scss',
+  'less'
+];
+
 export const randomNumber = (min: number, max: number): number =>
   min + Math.floor(Math.random() * (max - min)) + 1;
 
@@ -11,3 +21,4 @@ export const pathMaker = (pattern) => {
     pattern.map(val => new vscode.RelativePattern(vscode.workspace.rootPath, val)) :
     false;
 };
+

@@ -1,46 +1,28 @@
 import * as vscode from 'vscode';
 import { devtoolConsole } from './lib/console/console';
-
-
 import {
   detailAnnotationMaker,
   blockAnnotationMaker
 } from './lib/annotation/annotationMaker';
 
-// ────────────────────────────────────────────────────────
-// Copyright (c) 
-// license MIT
-// DESCRIPTION ---
-// AUTHOR ---
-// DATA ---
-// BUG ---  
-//  
-// ────────────────────────────────────────────────────────
-
-/*────────────────────────────────────────────────────────
- * this is the best man who has a des a 
- *  @BUG ---
- *   
- *  ────────────────────────────────────────────────────────* /
-
-/*──── BUG ──────────────────────────────────────────────────── */
-
-
 
 export function activate(context: vscode.ExtensionContext) {
 
+  if (vscode.workspace.getConfiguration('bana').get('enable', true)) {
+    let detail_annotation = vscode.commands.registerCommand('bana.detailAnnotation', detailAnnotationMaker);
 
-  let detail_annotation = vscode.commands.registerCommand('muguet.detailAnnotation', detailAnnotationMaker);
+    let block_annotation = vscode.commands.registerCommand('bana.blockAnnotation', blockAnnotationMaker);
 
-  let block_annotation = vscode.commands.registerCommand('muguet.blockAnnotation', blockAnnotationMaker);
+    let devtool_console = vscode.commands.registerCommand('bana.console', devtoolConsole);
 
-  let devtool_console = vscode.commands.registerCommand('muguet.console', devtoolConsole);
-
-  context.subscriptions.push(
-    block_annotation,
-    detail_annotation,
-    devtool_console
-  );
+    context.subscriptions.push(
+      block_annotation,
+      detail_annotation,
+      devtool_console
+    );
+  } else {
+    vscode.window.showWarningMessage('bana 已关闭');
+  }
 }
 
-export function deactivate() { }
+// export function deactivate() { }

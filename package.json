@@ -1,6 +1,6 @@
 {
-  "name": "vscode-extension-muguet",
-  "displayName": "vscode-extension-muguet",
+  "name": "vscode-extension-bana",
+  "displayName": "vscode-extension-bana",
   "version": "0.0.1",
   "description": "a tool collection for muguet ui development",
   "engines": {
@@ -16,63 +16,68 @@
   "contributes": {
     "commands": [
       {
-        "command": "muguet.detailAnnotation",
-        "title": "Muguet-Annotation detail"
+        "command": "bana.detailAnnotation",
+        "title": "Bana-Annotation detail"
       },
       {
-        "command": "muguet.blockAnnotation",
-        "title": "Muguet-Annotation block"
+        "command": "bana.blockAnnotation",
+        "title": "Bana-Annotation block"
       },
       {
-        "command": "muguet.titleAnnotation",
-        "title": "Muguet-Annotation title"
+        "command": "bana.titleAnnotation",
+        "title": "Bana-Annotation title"
       }
     ],
     "menus": {},
     "keybindings": [
       {
-        "command": "muguet.blockAnnotation",
-        "key": "alt+]",
+        "command": "bana.blockAnnotation",
+        "key": "ctrl+alt+]",
         "when": "editorTextFocus"
       },
       {
-        "command": "muguet.detailAnnotation",
+        "command": "bana.detailAnnotation",
         "key": "ctrl+alt+d",
         "when": "editorTextFocus"
       },
       {
-        "command": "muguet.titleAnnotation",
+        "command": "bana.titleAnnotation",
         "key": "ctrl+alt+t",
         "when": "editorTextFocus"
       },
       {
-        "command": "muguet.console",
-        "key": "alt+[",
+        "command": "bana.console",
+        "key": "ctrl+alt+[",
         "when": "editorTextFocus"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "muguet",
+      "title": "bana",
       "properties": {
-        "muguet.enable": {
+        "bana.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable or disable the muguet"
+          "description": "是否开启bana"
         },
-        "muguet.annotation.width": {
+        "bana.annotation.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否开启bana 注释"
+        },
+        "bana.annotation.width": {
           "type": "number",
           "default": 100,
-          "description": "annotation width"
+          "description": "注释宽度"
         },
-        "muguet.annotation.intends": {
+        "bana.annotation.intends": {
           "type": "number",
           "default": 6,
-          "description": "annotation /* distance from text"
+          "description": "注释缩进"
         },
-        "muguet.annotation.style": {
+        "bana.annotation.style": {
           "type": "object",
-          "description": "custom for keywords highlight style",
+          "description": "自定义关键词颜色, 默认随即色",
           "properties": {
             "color": {
               "type": "string"
@@ -82,9 +87,9 @@
             }
           }
         },
-        "muguet.console.style": {
+        "bana.console.style": {
           "type": "object",
-          "description": "custom for console style",
+          "description": "自定义控制台输出颜色",
           "properties": {
             "color": {
               "type": "string"
@@ -92,47 +97,6 @@
             "font-size": {
               "type": "string"
             }
-          }
-        },
-        "muguet.include": {
-          "type": "array",
-          "default": [
-            "**/*.js",
-            "**/*.jsx",
-            "**/*.ts",
-            "**/*.tsx",
-            "**/*.html",
-            "**/*.php",
-            "**/*.css",
-            "**/*.scss"
-          ],
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              }
-            ]
-          }
-        },
-        "muguet.exclude": {
-          "type": "array",
-          "default": [
-            "**/node_modules/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/.vscode/**",
-            "**/.github/**",
-            "**/out/**",
-            "**/*.min.*",
-            "**/*.map",
-            "**/release/**"
-          ],
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              }
-            ]
           }
         }
       }

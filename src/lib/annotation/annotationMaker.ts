@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { keywordsHighlight } from '../style/keywordsHighlight';
+// import { keywordsHighlight } from '../style/keywordsHighlight';
 
 type AnnotationType = 'block' | 'title' | 'detail';
 let { workspace, window } = vscode;
@@ -8,7 +8,7 @@ let nameAnnotationReg: RegExp = /(((?<=function\s+)(.+))(?=\s*\())|(((?<=class\s
 let timeout = null;
 let isStart = true;
 
-const supportLanguages = [
+export const supportLanguages = [
   'typescript',
   'typescriptreact',
   'javascript',
@@ -18,7 +18,43 @@ const supportLanguages = [
   'less'
 ];
 
+const generateAnnotation = (
+  content,
+  annotationWidth,
+  startLine,
+  endLine,
+) => {
+  let EOL = vscode.window.activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
+  let newAnnotation = '/**';
+  for (let i = startLine; i <= endLine; i++) {
+    let lineText;
+    if (content) {
+      lineText = vscode.window.activeTextEditor.document.lineAt(i).text
+    }
+    if (i === startLine) {
+      let width = annotationWidth - 3;
+      for (let j = 0; j < width; j++) {
+        newAnnotation += '=';
+      }
+      newAnnotation += EOL + ' *\t\t\t' + content + EOL;
+    }
 
+    if (i > startLine && i < endLine)
+      newAnnotation += ' *\t\t\t' + content + EOL;
+
+    if (i === endLine) {
+      let width = annotationWidth - 3;
+      newAnnotation += ' *\t\t\t' + content + EOL + ' *';
+
+      for (let j = 0; j < width; j++) {
+        newAnnotation += '=';
+      }
+
+      newAnnotation += '*/' + EOL;
+    }
+  }
+  return newAnnotation;
+};
 
 const insertBlockAnnotation = (
   value: string,
@@ -53,13 +89,12 @@ const insertBlockAnnotation = (
   return newAnnotation;
 };
 
-const blockMaker = (
-  { annotationWidth, annotationIntend },
-  activeTextEditor: vscode.TextEditor
-): void => {
-  let selectionLine = <vscode.Selection>activeTextEditor.selection;
+const blockMaker = (annotationWidth, annotationIntend): void => {
+  let activeTextEditor = vscode.window.activeTextEditor;
+  let selectionLine = activeTextEditor.selection;
   let cursorLine = selectionLine.active.line;
   let cursorLineText = activeTextEditor.document.lineAt(cursorLine).text;
+
   // 是否是开始注释
   let afterEditString = null;
   // 匹配到函数和 类 自动 生成注释插入上一行
@@ -93,11 +128,8 @@ const blockMaker = (
   });
 };
 
-const detailMaker = (
-  { annotationWidth },
-  activeTextEditor: vscode.TextEditor
-) => {
-
+const detailMaker = (annotationWidth) => {
+  let activeTextEditor = window.activeTextEditor;
   let startLine = activeTextEditor.selection.start.line;
   let endLine = activeTextEditor.selection.end.line;
   let EOL = activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
@@ -118,67 +150,66 @@ const detailMaker = (
     if (i === endLine) {
       let width = annotationWidth - 3;
       detailAnnotation += ' *\t\t\t' + lineText + EOL + ' *';
+
       for (let j = 0; j < width; j++) {
         detailAnnotation += '=';
       }
+
       detailAnnotation += '*/' + EOL;
+
       let a = new vscode.Position(startLine, 0);
       let b = new vscode.Position(endLine, lineText.length);
+
       activeTextEditor.edit(editor => {
         editor.replace(new vscode.Selection(a, b), detailAnnotation);
-      }).then((bool) => {
-        if (bool) {
-
-        }
-      })
+      });
     }
   }
-}
+};
 
 const titleMaker = (
   { annotationWidth, annotationIntend },
   activeTextEditor: vscode.TextEditor
 ) => {
 
-}
+
+
+};
 
 const maker = (type: AnnotationType) => {
-  let settings = workspace.getConfiguration('muguet');
+  let settings = workspace.getConfiguration('bana.annotation');
   let activeTextEditor = window.activeTextEditor;
   let document = activeTextEditor.document;
   let language = document.languageId;
-  let options = {
-    annotationWidth: settings.get('annotation.width', 100),
-    annotationIntend: settings.get('annotation.intends', 6)
-  };
-
+  let annotationWidth = settings.get('width', 100);
+  let annotationIntends = settings.get('intends', 6)
   if (!activeTextEditor || !activeTextEditor.document) return false;
 
   if (!settings.get('enable', true)) {
-    window.showWarningMessage('muguet-annotation 已关闭');
+    window.showWarningMessage('bana-annotation 已关闭');
     return false;
   }
 
   if (supportLanguages.includes(language)) {
     switch (type) {
-      case 'detail': detailMaker(options, activeTextEditor)
+      case 'detail': detailMaker(annotationWidth);
         break;
-      case 'block': blockMaker(options, activeTextEditor);
+      case 'block': blockMaker(annotationWidth, annotationIntends);
         break;
-      case 'title': titleMaker(options, activeTextEditor);
+        // case 'title': titleMaker();
         break;
     }
   } else {
-    window.showWarningMessage('muguet-annotation 不支持该语言');
+    window.showWarningMessage('bana-annotation 不支持该语言');
   }
-}
+};
 // 更新注释颜色
 const updateKeyWordHighlight = () => {
-  let settings = workspace.getConfiguration('muguet');
+  let settings = workspace.getConfiguration('bana');
   // tslint:disable-next-line: no-unused-expression
   timeout && clearTimeout(timeout);
   timeout = setTimeout(() => {
-    keywordsHighlight(settings);
+    // keywordsHighlight(settings);
   }, 100);
 };
 
@@ -199,3 +230,6 @@ export const titleAnnotationMaker = () => maker('title');
 export const blockAnnotationMaker = () => maker('block');
 
 export const detailAnnotationMaker = () => maker('detail');
+
+
+
