@@ -1,11 +1,12 @@
+// 函数参数有多行
+
+
 import * as vscode from 'vscode';
-import { supportLanguages } from '../annotation/annotationMaker';
+import { supportLanguages } from '../../utils/utils';
+
 
 // 匹配函数 包含对象内函数 demo = ()=>{}
 
-let funcReg = /(?<=\()(.+)(?=\)\s*=>)|(?<=(function\s*|(.+))\()(.+)(?=\)\s*\{)/g;
-let variableToken = /const|let|type|var/g;
-let tsTypeReg = /:(?<=\s*:\s*)(.+)/g;
 let isWillSave = true;
 let saveStack: Array<string> = [];
 let defaultStyle = {
@@ -15,11 +16,17 @@ let defaultStyle = {
 
 const back = (a) => a ? a : false;
 const backIndex = (a, w) => a.indexOf(w) > -1 ? a.indexOf(w) : false;
+
 // 处理掉ts 类型, js 也用没事
-const handleTsType = (handledArgs: string): string =>
-  handledArgs.split(',').map(v => v.replace(tsTypeReg, '').trim()).join(', ');
+const handleTsType = (handledArgs: string): string => {
+  let tsTypeReg = /:(?<=\s*:\s*)(.+)/g;
+  return handledArgs.split(',').map(v => v.replace(tsTypeReg, '').trim()).join(', ');
+}
+
+
 
 const styleToString = (style): string => {
+
   let styleString = '';
   for (let key in <any>style) {
     styleString += key + ':' + style[key] + ';';
@@ -27,12 +34,14 @@ const styleToString = (style): string => {
   return styleString;
 };
 
+
 export const devtoolConsole = () => {
 
   let activeTextEditor = vscode.window.activeTextEditor;
-
   if (!supportLanguages.includes(activeTextEditor.document.languageId)) { return; }
 
+  let variableToken = /const|let|type|var/g;
+  let funcReg = /(?<=\()(.+)(?=\)(.+|)=>)|(?<=(function\s*|(.+))\()(.+)(?=\)\s*\{)/g;
   let setting = vscode.workspace.getConfiguration('bana.console');
   let selection = activeTextEditor.selection;
   let cursorLine = selection.active.line;
@@ -49,9 +58,8 @@ export const devtoolConsole = () => {
 
     if (hasVariable && hasFP) {
       matches = handleTsType(hasFP[0]);
+      console.log(matches)
     } else if (hasVariable) {
-      // 排除一行中有多个变量 let demo = 10; let a, b = 10;
-      // 匹配变量
       let a = cursorText
         .split(';')
         .filter(v => v !== '')
@@ -79,7 +87,7 @@ export const devtoolConsole = () => {
         if (matches) {
           let args = matches.replace(/\{|\}|\.{3}/g, '');
           consoleString = `console.log("%CONSOLE -- ${args}", "${styleString}");\nconsole.log(${args});`;
-          vscode.window.showInformationMessage("已暂存");
+          vscode.window.showInformationMessage(args + " 已暂存");
         }
       } else {
 
@@ -90,7 +98,7 @@ export const devtoolConsole = () => {
         let selectText = activeTextEditor.document.getText(range);
 
         consoleString = `console.log("%CONSOLE -- ${selectText}", "${styleString}");\nconsole.log(${selectText});`;
-        vscode.window.showInformationMessage("已暂存");
+        vscode.window.showInformationMessage(selectText + " 已暂存");
       }
 
       saveStack.push(consoleString);
@@ -109,3 +117,45 @@ export const devtoolConsole = () => {
     });
   }
 };
+
+
+
+// if (isStart) {
+//   if (cursorLineText === '') return;
+//   isStart = false;
+
+//   matches = handleBlockName(cursorLineText);
+//   // tslint:disable-next-line: no-unused-expression
+//   matches && (cursorLine -= 1);
+
+//   let startValue: string = matches ? <string>matches : cursorLineText;
+//   let pkg = pkgInfo();
+
+//   if (pkg) {
+//     let content = [
+//       'AUTHOR --- ' + pkg.author,
+//       'BLOCK --- ' + startValue,
+//       'LASTMODIFY --- ' + new Date().toISOString(),
+//       'DESCRIPTION --- '
+//     ];
+//     let endLine = cursorLine + content.length - 1;
+//     afterEditString = multiAnnotationMaker(content, annotationWidth, cursorLine, endLine);
+//     endAnnotationStack.push(startValue.toUpperCase());
+//   }
+// } else if (cursorLineText === '') {
+//   isStart = true;
+//   let endValue = endAnnotationStack.pop();
+//   afterEditString = endAnnotationMaker(endValue + ' --- END', annotationWidth, annotationIntend);
+// }
+
+// // 插入text
+// activeTextEditor.edit((editor) => {
+//   let start = new vscode.Position(cursorLine, 0);
+//   if (matches) {
+//     editor.insert(start, <string>afterEditString);
+//   } else if (cursorLineText === '') {
+//     let end = new vscode.Position(cursorLine, annotationWidth);
+//     // 没有匹配就代替这一行 使用自己打的注释
+//     editor.replace(new vscode.Range(start, end), <string>afterEditString);
+//   }
+// });

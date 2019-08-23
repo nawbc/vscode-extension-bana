@@ -1,8 +1,16 @@
 {
-  "name": "vscode-extension-bana",
-  "displayName": "vscode-extension-bana",
+  "name": "Bana",
+  "displayName": "Bana",
   "version": "0.0.1",
-  "description": "a tool collection for muguet ui development",
+  "publisher": "HanWang",
+  "description": "A tool collection for js/ts development",
+  "author": "HanWang",
+  "license": "MIT",
+  "icon": "logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sewerganger/vscode-extension-bana"
+  },
   "engines": {
     "vscode": "^1.36.0"
   },
@@ -75,7 +83,7 @@
           "default": 6,
           "description": "注释缩进"
         },
-        "bana.annotation.style": {
+        "bana.keywords.style": {
           "type": "object",
           "description": "自定义关键词颜色, 默认随即色",
           "properties": {
@@ -84,6 +92,26 @@
             },
             "backgroundColor": {
               "type": "string"
+            }
+          }
+        },
+        "bana.annotation.title": {
+          "type": "object",
+          "properties": {
+            "author": {
+              "type": "boolean"
+            },
+            "license": {
+              "type": "boolean"
+            },
+            "lastmodify": {
+              "type": "boolean"
+            },
+            "repository": {
+              "type": "boolean"
+            },
+            "description": {
+              "type": "boolean"
             }
           }
         },

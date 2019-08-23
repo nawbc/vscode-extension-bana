@@ -1,235 +1,272 @@
+/**=================================================================================================
+ *			AUTHOR --- HanWang
+ *			LICENSE --- MIT
+ *			LASTMODIFY --- 2019-08-23T05:25:00.561Z
+ *			DESCRIPTION --- A tool collection for js/ts development
+ *			REPOSITORY --- https://github.com/sewerganger/vscode-extension-bana
+ *=================================================================================================*/
+
 import * as vscode from 'vscode';
-// import { keywordsHighlight } from '../style/keywordsHighlight';
+import { pkgInfo, supportLanguages } from '../../utils/utils';
 
 type AnnotationType = 'block' | 'title' | 'detail';
 let { workspace, window } = vscode;
 let endAnnotationStack: Array<string> = [];
-let nameAnnotationReg: RegExp = /(((?<=function\s+)(.+))(?=\s*\())|(((?<=class\s+)(.+))(?=\s*\{))|(((?<=var|const|let|type)(.+))(?=(\s*=\s*\()))/g;
-let timeout = null;
 let isStart = true;
 
-export const supportLanguages = [
-  'typescript',
-  'typescriptreact',
-  'javascript',
-  'javascriptreact',
-  'css',
-  'scss',
-  'less'
-];
 
-const generateAnnotation = (
-  content,
-  annotationWidth,
-  startLine,
-  endLine,
-) => {
+/**=================================================================================================
+ *			多行
+ *			注释
+ *=================================================================================================*/
+
+
+
+/**=================================================================================================
+ *			AUTHOR --- HanWang
+ *			LASTMODIFY --- 2019-08-23T05:25:11.833Z
+ *			BLOCK --- 自定义block name
+ *			DESCRIPTION --- 
+ *=================================================================================================*/
+/*================================================================= 自定义BLOCK NAME --- END =====*/
+
+
+
+/**=================================================================================================
+ *			AUTHOR --- HanWang
+ *			LASTMODIFY --- 2019-08-23T05:25:06.281Z
+ *			BLOCK ---  endAnnotationMaker 
+ *			DESCRIPTION --- 
+ *=================================================================================================*/
+const endAnnotationMaker = (value: string, annotationWidth, annotationIntends): string | boolean => {
+
+  console.log("%CONSOLE -- value", "color:#1E90FF;font-size:14px;");
+  console.log(value);
+
+  console.log("%CONSOLE -- value, annotationWidth, annotationIntends", "color:#1E90FF;font-size:14px;");
+  console.log(value, annotationWidth, annotationIntends);
+
+  let newAnnotation = '/*';
+
+  console.log("%CONSOLE -- newAnnotation", "color:#1E90FF;font-size:14px;");
+  console.log(newAnnotation);
+
+  let k; const l = 1000;
+  console.log("%CONSOLE -- k, l", "color:#1E90FF;font-size:14px;");
+  console.log(k, l);
+
+  const kk: Array<string> = ['111']
+  console.log("%CONSOLE -- kk", "color:#1E90FF;font-size:14px;");
+  console.log(kk);
+
+
+
+  let a = annotationWidth - value.length - 13;
+  for (let j = 0; j < annotationWidth; j++) {
+    if (j > 0 && j < a) { newAnnotation += '='; }
+    if (j === a) { newAnnotation += ' ' + value + ' '; }
+    if (j > annotationWidth - annotationIntends) { newAnnotation += '='; }
+    if (j === annotationWidth - 1) { newAnnotation += '*/'; }
+  }
+  return newAnnotation;
+
+};
+
+/*==========================================================  ENDANNOTATIONMAKER  --- END =====*/
+
+// 生成多行注释 
+const multiAnnotationMaker = (
+  content: string[],
+  annotationWidth: number,
+  startLine: number,
+  endLine: number,
+): string => {
   let EOL = vscode.window.activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
   let newAnnotation = '/**';
+
   for (let i = startLine; i <= endLine; i++) {
     let lineText;
-    if (content) {
-      lineText = vscode.window.activeTextEditor.document.lineAt(i).text
+    if (!content) {
+      lineText = vscode.window.activeTextEditor.document.lineAt(i).text;
+    } else {
+      lineText = content[i - startLine];
     }
+
     if (i === startLine) {
       let width = annotationWidth - 3;
       for (let j = 0; j < width; j++) {
         newAnnotation += '=';
       }
-      newAnnotation += EOL + ' *\t\t\t' + content + EOL;
+      newAnnotation += EOL + ' *\t\t\t' + lineText + EOL;
     }
 
     if (i > startLine && i < endLine)
-      newAnnotation += ' *\t\t\t' + content + EOL;
+      newAnnotation += ' *\t\t\t' + lineText + EOL;
 
     if (i === endLine) {
       let width = annotationWidth - 3;
-      newAnnotation += ' *\t\t\t' + content + EOL + ' *';
-
+      // tslint:disable-next-line: no-unused-expression
+      endLine !== startLine && (newAnnotation += ' *\t\t\t' + lineText + EOL);
+      newAnnotation += ' *';
       for (let j = 0; j < width; j++) {
         newAnnotation += '=';
       }
-
       newAnnotation += '*/' + EOL;
     }
   }
   return newAnnotation;
 };
 
-const insertBlockAnnotation = (
-  value: string,
-  type: 'start' | 'end',
-  { annotationIntend, annotationWidth }
-): string | boolean => {
+const handleBlockName = (text: string): string | boolean => {
+  let hasFunction = text.includes('function');
+  let varNameReg = /(?<=var|const|let|type)(.+)(?=\s*=\s*)/g;
+  let hasArrowFunction = /\)(.+|)=>/.test(text);
+  let hasVarName = varNameReg.test(text);
+  let hasClass = text.includes('class');
+  let start = null;
+  let end = null;
 
-  let newAnnotation = '/*';
-  if (value.length >= annotationWidth) {
-    window.showWarningMessage('字符串超出限制长度');
-    return false;
-  } else {
-    if (type === 'start') {
-      let a = value.toUpperCase().trim();
-      for (let i = 0; i < annotationWidth; i++) {
-        if (i < annotationIntend) { newAnnotation += '='; }
-        if (i === annotationIntend) { newAnnotation += ' ' + a + ' '; }
-        if (i > annotationIntend + value.length && i < annotationWidth - 1) { newAnnotation += '='; }
-        if (i === annotationWidth - 1) { newAnnotation += '*/'; }
-      }
-      endAnnotationStack.push(a);
-    } else if (type === 'end') {
-      let a = annotationWidth - annotationIntend - value.length;
-      for (let j = 0; j < annotationWidth; j++) {
-        if (j > 0 && j < a) { newAnnotation += '='; }
-        if (j === a) { newAnnotation += ' ' + value + ' '; }
-        if (j > annotationWidth - annotationIntend) { newAnnotation += '='; }
-        if (j === annotationWidth - 1) { newAnnotation += '*/'; }
-      }
+  if (hasVarName && (hasFunction || hasArrowFunction)) {
+
+    let c = text.indexOf('const'), l = text.indexOf('let'), v = text.indexOf('var');
+    end = text.indexOf('=');
+    start = (c > -1 ? c + 5 : false) || (l > -1 ? l + 3 : false) || (v > -1 ? v + 3 : false);
+
+  } else if (hasClass || hasFunction) {
+
+    let lt = text.indexOf('<');
+    let pa = text.indexOf('(');
+    let ext = text.indexOf('extends');
+    let impl = text.indexOf('implements');
+    let brackets = text.indexOf('{');
+
+    if (text.includes('function')) {
+      start = text.indexOf('function') + 'function'.length;
+    } else if (text.includes('class')) {
+      start = text.indexOf('class') + 'class'.length;
     }
+    end = (lt > -1 ? lt : false) || (pa > -1 ? pa : false) || (ext > -1 ? ext : false) || (impl > -1 ? impl : false) || brackets;
+  } else {
+    return false;
   }
-  return newAnnotation;
+  return text.slice(start, end);
 };
 
-const blockMaker = (annotationWidth, annotationIntend): void => {
+
+const blockMaker = (annotationWidth, annotationIntends): void => {
   let activeTextEditor = vscode.window.activeTextEditor;
   let selectionLine = activeTextEditor.selection;
   let cursorLine = selectionLine.active.line;
   let cursorLineText = activeTextEditor.document.lineAt(cursorLine).text;
-
-  // 是否是开始注释
-  let afterEditString = null;
-  // 匹配到函数和 类 自动 生成注释插入上一行
-  let matches = null;
+  let startPos = new vscode.Position(cursorLine, 0);
+  let endPos = new vscode.Position(cursorLine, annotationWidth);
+  let range = new vscode.Range(startPos, endPos);
 
   if (isStart) {
-    if (cursorLineText === '') return;
-    isStart = false;
-    vscode.window.showInformationMessage("已暂存");
-    matches = cursorLineText.match(nameAnnotationReg);
+    let matches = <string>handleBlockName(cursorLineText);
     // tslint:disable-next-line: no-unused-expression
-    matches && (cursorLine -= 2);
-    let transVal = matches ? matches[0] : cursorLineText;
-    afterEditString = insertBlockAnnotation(transVal, 'start', { annotationWidth, annotationIntend });
-  } else {
+    matches && (cursorLine -= 1);
+    activeTextEditor.edit((editor) => {
+      let pkg = pkgInfo();
+      if (pkg) {
+        let value = matches ? matches : cursorLineText;
+        let content = [
+          'AUTHOR --- ' + pkg.author,
+          'LASTMODIFY --- ' + new Date().toISOString(),
+          'BLOCK --- ' + value,
+          'DESCRIPTION --- '
+        ];
+        let endLine = cursorLine + content.length - 1;
+        let afterEditString = multiAnnotationMaker(content, annotationWidth, cursorLine, endLine);
+        matches ? editor.insert(startPos, <string>afterEditString) : editor.replace(range, <string>afterEditString);
+        endAnnotationStack.push(value.toUpperCase());
+        isStart = false;
+      }
+    });
+  } else if (cursorLineText === '') {
     isStart = true;
-    // 栈中取出 开始时push的值
     let endValue = endAnnotationStack.pop();
-    afterEditString = insertBlockAnnotation(endValue + ' --- END', 'end', { annotationWidth, annotationIntend });
+    let afterEditString = endAnnotationMaker(endValue + ' --- END', annotationWidth, annotationIntends);
+    activeTextEditor.edit((editor) => {
+      editor.replace(range, <string>afterEditString);
+    });
   }
-  // 插入text
-  activeTextEditor.edit((editor) => {
-    let start = new vscode.Position(cursorLine, 0);
-    if (matches) {
-      editor.insert(start, <string>afterEditString);
-    } else {
-      let end = new vscode.Position(cursorLine, annotationWidth);
-      // 没有匹配就代替这一行 使用自己打的注释
-      editor.replace(new vscode.Range(start, end), <string>afterEditString);
-    }
-  });
 };
 
-const detailMaker = (annotationWidth) => {
+// 多行注释
+const multiMaker = (annotationWidth) => {
   let activeTextEditor = window.activeTextEditor;
   let startLine = activeTextEditor.selection.start.line;
   let endLine = activeTextEditor.selection.end.line;
-  let EOL = activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
-  let detailAnnotation = '/**';
-  for (let i = startLine; i <= endLine; i++) {
-    let lineText = activeTextEditor.document.lineAt(i).text;
-    if (i === startLine) {
-      let width = annotationWidth - 3;
-      for (let j = 0; j < width; j++) {
-        detailAnnotation += '=';
-      }
-      detailAnnotation += EOL + ' *\t\t\t' + lineText + EOL;
-    }
+  let annotation = multiAnnotationMaker(null, annotationWidth, startLine, endLine);
+  let endLineLen = activeTextEditor.document.lineAt(endLine).text.length;
 
-    if (i > startLine && i < endLine)
-      detailAnnotation += ' *\t\t\t' + lineText + EOL;
+  let sPos = new vscode.Position(startLine, 0);
+  let ePos = new vscode.Position(endLine, endLineLen);
 
-    if (i === endLine) {
-      let width = annotationWidth - 3;
-      detailAnnotation += ' *\t\t\t' + lineText + EOL + ' *';
+  activeTextEditor.edit(editor => {
+    editor.replace(new vscode.Selection(sPos, ePos), annotation);
+  });
+};
 
-      for (let j = 0; j < width; j++) {
-        detailAnnotation += '=';
-      }
+// title 注释
+const titleMaker = (annotationWidth) => {
+  let activeTextEditor = window.activeTextEditor;
+  // 自定义注释内容 
+  // let settings = vscode.workspace.getConfiguration('bana.annotation');
+  let pkg = pkgInfo();
 
-      detailAnnotation += '*/' + EOL;
+  if (pkg) {
 
-      let a = new vscode.Position(startLine, 0);
-      let b = new vscode.Position(endLine, lineText.length);
+    let cursorLine = activeTextEditor.selection.active.line;
+    let content = [
+      'AUTHOR --- ' + pkg.author,
+      'LICENSE --- ' + pkg.license,
+      'LASTMODIFY --- ' + new Date().toISOString(),
+      'DESCRIPTION --- ' + pkg.description,
+      'REPOSITORY --- ' + pkg.repository,
+    ];
 
-      activeTextEditor.edit(editor => {
-        editor.replace(new vscode.Selection(a, b), detailAnnotation);
-      });
-    }
+    let endLine = cursorLine + content.length - 1;
+    let annotation = multiAnnotationMaker(content, annotationWidth, cursorLine, endLine);
+    activeTextEditor.edit(editor => {
+      editor.insert(new vscode.Position(cursorLine, 0), annotation);
+    });
+  } else {
+    return;
   }
 };
 
-const titleMaker = (
-  { annotationWidth, annotationIntend },
-  activeTextEditor: vscode.TextEditor
-) => {
-
-
-
-};
-
 const maker = (type: AnnotationType) => {
+
   let settings = workspace.getConfiguration('bana.annotation');
   let activeTextEditor = window.activeTextEditor;
   let document = activeTextEditor.document;
   let language = document.languageId;
   let annotationWidth = settings.get('width', 100);
-  let annotationIntends = settings.get('intends', 6)
-  if (!activeTextEditor || !activeTextEditor.document) return false;
+  let annotationIntends = settings.get('intends', 6);
 
   if (!settings.get('enable', true)) {
     window.showWarningMessage('bana-annotation 已关闭');
-    return false;
+    return;
   }
 
   if (supportLanguages.includes(language)) {
     switch (type) {
-      case 'detail': detailMaker(annotationWidth);
+      case 'detail': multiMaker(annotationWidth);
         break;
       case 'block': blockMaker(annotationWidth, annotationIntends);
         break;
-        // case 'title': titleMaker();
+      case 'title': titleMaker(annotationWidth);
         break;
     }
   } else {
     window.showWarningMessage('bana-annotation 不支持该语言');
   }
 };
-// 更新注释颜色
-const updateKeyWordHighlight = () => {
-  let settings = workspace.getConfiguration('bana');
-  // tslint:disable-next-line: no-unused-expression
-  timeout && clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    // keywordsHighlight(settings);
-  }, 100);
-};
-
-vscode.workspace.onDidChangeTextDocument(() => {
-  updateKeyWordHighlight();
-});
-
-vscode.workspace.onDidChangeConfiguration(() => {
-  updateKeyWordHighlight();
-});
-
-vscode.window.onDidChangeActiveTextEditor(() => {
-  updateKeyWordHighlight();
-});
 
 export const titleAnnotationMaker = () => maker('title');
 
 export const blockAnnotationMaker = () => maker('block');
 
 export const detailAnnotationMaker = () => maker('detail');
-
-
-

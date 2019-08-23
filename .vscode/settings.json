@@ -6,6 +6,8 @@
     "comments",
     "console",
     "devtool",
+    "esnext",
+    "lastmodify",
     "muguet"
   ]
 }
