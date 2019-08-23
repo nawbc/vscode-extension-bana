@@ -21,8 +21,7 @@
   "bana.enable":  true // 开启bana
   "bana.annotation.enable": true // 开启注释
   "bana.annotation.width": 100, // 注释宽度
-  "bana.annotation.intends": 6, // 注释缩进
-  "bana.annotation.titleColor": "#FFA500"
+  "bana.annotation.intends": 6, // 注释到内容的距离
 }
 ```
 这个怎么解决 
