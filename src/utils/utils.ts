@@ -24,7 +24,6 @@ export const pathMaker = (pattern) => {
     false;
 };
 
-
 interface AvailablePkg {
   author: string;
   license: string;
@@ -40,7 +39,6 @@ export const getWorkSpacePkg = (): AvailablePkg | boolean => {
     let content = fs.readFileSync(a).toString('utf8');
     return JSON.parse(content);
   } else {
-    vscode.window.showErrorMessage('当前工作区根目录不存在package.json');
     return false;
   }
 };
@@ -59,6 +57,7 @@ export const pkgInfo = () => {
       repository
     };
   } else {
+    vscode.window.showErrorMessage('当前工作区根目录不存在package.json, 请将项目调至第一个, 重试');
     return false;
   }
 }

@@ -1,10 +1,11 @@
 /**=================================================================================================
  *			AUTHOR --- HanWang
  *			LICENSE --- MIT
- *			LASTMODIFY --- 2019-08-23T05:25:00.561Z
+ *			LASTMODIFY --- 2019-08-23T06:01:10.880Z
  *			DESCRIPTION --- A tool collection for js/ts development
  *			REPOSITORY --- https://github.com/sewerganger/vscode-extension-bana
  *=================================================================================================*/
+
 
 import * as vscode from 'vscode';
 import { pkgInfo, supportLanguages } from '../../utils/utils';
@@ -14,53 +15,9 @@ let { workspace, window } = vscode;
 let endAnnotationStack: Array<string> = [];
 let isStart = true;
 
-
-/**=================================================================================================
- *			多行
- *			注释
- *=================================================================================================*/
-
-
-
-/**=================================================================================================
- *			AUTHOR --- HanWang
- *			LASTMODIFY --- 2019-08-23T05:25:11.833Z
- *			BLOCK --- 自定义block name
- *			DESCRIPTION --- 
- *=================================================================================================*/
-/*================================================================= 自定义BLOCK NAME --- END =====*/
-
-
-
-/**=================================================================================================
- *			AUTHOR --- HanWang
- *			LASTMODIFY --- 2019-08-23T05:25:06.281Z
- *			BLOCK ---  endAnnotationMaker 
- *			DESCRIPTION --- 
- *=================================================================================================*/
 const endAnnotationMaker = (value: string, annotationWidth, annotationIntends): string | boolean => {
 
-  console.log("%CONSOLE -- value", "color:#1E90FF;font-size:14px;");
-  console.log(value);
-
-  console.log("%CONSOLE -- value, annotationWidth, annotationIntends", "color:#1E90FF;font-size:14px;");
-  console.log(value, annotationWidth, annotationIntends);
-
   let newAnnotation = '/*';
-
-  console.log("%CONSOLE -- newAnnotation", "color:#1E90FF;font-size:14px;");
-  console.log(newAnnotation);
-
-  let k; const l = 1000;
-  console.log("%CONSOLE -- k, l", "color:#1E90FF;font-size:14px;");
-  console.log(k, l);
-
-  const kk: Array<string> = ['111']
-  console.log("%CONSOLE -- kk", "color:#1E90FF;font-size:14px;");
-  console.log(kk);
-
-
-
   let a = annotationWidth - value.length - 13;
   for (let j = 0; j < annotationWidth; j++) {
     if (j > 0 && j < a) { newAnnotation += '='; }
@@ -71,8 +28,6 @@ const endAnnotationMaker = (value: string, annotationWidth, annotationIntends): 
   return newAnnotation;
 
 };
-
-/*==========================================================  ENDANNOTATIONMAKER  --- END =====*/
 
 // 生成多行注释 
 const multiAnnotationMaker = (
@@ -134,24 +89,26 @@ const handleBlockName = (text: string): string | boolean => {
 
   } else if (hasClass || hasFunction) {
 
-    let lt = text.indexOf('<');
-    let pa = text.indexOf('(');
-    let ext = text.indexOf('extends');
-    let impl = text.indexOf('implements');
-    let brackets = text.indexOf('{');
+    let tokenIndex = [
+      text.indexOf('<'),
+      text.indexOf('('),
+      text.indexOf('extends'),
+      text.indexOf('implements'),
+      text.indexOf('{')
+    ].filter(v => v > -1);
 
-    if (text.includes('function')) {
+    if (hasFunction) {
       start = text.indexOf('function') + 'function'.length;
-    } else if (text.includes('class')) {
+    } else if (hasClass) {
       start = text.indexOf('class') + 'class'.length;
     }
-    end = (lt > -1 ? lt : false) || (pa > -1 ? pa : false) || (ext > -1 ? ext : false) || (impl > -1 ? impl : false) || brackets;
+    // 谁小先匹配谁
+    end = Math.min.apply(null, tokenIndex);
   } else {
     return false;
   }
   return text.slice(start, end);
 };
-
 
 const blockMaker = (annotationWidth, annotationIntends): void => {
   let activeTextEditor = vscode.window.activeTextEditor;
@@ -164,10 +121,12 @@ const blockMaker = (annotationWidth, annotationIntends): void => {
 
   if (isStart) {
     let matches = <string>handleBlockName(cursorLineText);
+
     // tslint:disable-next-line: no-unused-expression
     matches && (cursorLine -= 1);
     activeTextEditor.edit((editor) => {
       let pkg = pkgInfo();
+
       if (pkg) {
         let value = matches ? matches : cursorLineText;
         let content = [
@@ -190,6 +149,8 @@ const blockMaker = (annotationWidth, annotationIntends): void => {
     activeTextEditor.edit((editor) => {
       editor.replace(range, <string>afterEditString);
     });
+  } else if (cursorLineText !== '') {
+    vscode.window.showWarningMessage('请先释放闭合注释');
   }
 };
 

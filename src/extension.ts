@@ -3,8 +3,6 @@ import { devtoolConsole } from './lib/console/console';
 // import { keywordsHighlight } from './lib/style/keywordsHighlight';
 
 
-
-
 import {
   detailAnnotationMaker,
   blockAnnotationMaker,
@@ -12,13 +10,7 @@ import {
 } from './lib/annotation/annotationMaker';
 
 // let timeout = null;
-/**=================================================================================================
- *			AUTHOR --- HanWang
- *			BLOCK ---  activate
- *			LASTMODIFY --- 2019-08-23T03:25:30.258Z
- *			DESCRIPTION --- 
- *=================================================================================================*/
-/*========================================================================  ACTIVATE --- END =====*/
+
 export function activate(context: vscode.ExtensionContext) {
 
   // let activeTextEditor = vscode.window.activeTextEditor;

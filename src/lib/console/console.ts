@@ -1,11 +1,6 @@
-// 函数参数有多行
-
-
 import * as vscode from 'vscode';
 import { supportLanguages } from '../../utils/utils';
 
-
-// 匹配函数 包含对象内函数 demo = ()=>{}
 
 let isWillSave = true;
 let saveStack: Array<string> = [];
@@ -21,9 +16,7 @@ const backIndex = (a, w) => a.indexOf(w) > -1 ? a.indexOf(w) : false;
 const handleTsType = (handledArgs: string): string => {
   let tsTypeReg = /:(?<=\s*:\s*)(.+)/g;
   return handledArgs.split(',').map(v => v.replace(tsTypeReg, '').trim()).join(', ');
-}
-
-
+};
 
 const styleToString = (style): string => {
 
@@ -33,7 +26,6 @@ const styleToString = (style): string => {
   }
   return styleString;
 };
-
 
 export const devtoolConsole = () => {
 
@@ -58,7 +50,6 @@ export const devtoolConsole = () => {
 
     if (hasVariable && hasFP) {
       matches = handleTsType(hasFP[0]);
-      console.log(matches)
     } else if (hasVariable) {
       let a = cursorText
         .split(';')
@@ -86,7 +77,7 @@ export const devtoolConsole = () => {
       if (activeChar === anchorChar) {
         if (matches) {
           let args = matches.replace(/\{|\}|\.{3}/g, '');
-          consoleString = `console.log("%CONSOLE -- ${args}", "${styleString}");\nconsole.log(${args});`;
+          consoleString = `console.log("%cCONSOLE -- ${args}", "${styleString}");\nconsole.log(${args});`;
           vscode.window.showInformationMessage(args + " 已暂存");
         }
       } else {
@@ -97,7 +88,7 @@ export const devtoolConsole = () => {
         );
         let selectText = activeTextEditor.document.getText(range);
 
-        consoleString = `console.log("%CONSOLE -- ${selectText}", "${styleString}");\nconsole.log(${selectText});`;
+        consoleString = `console.log("%cCONSOLE -- ${selectText}", "${styleString}");\nconsole.log(${selectText});`;
         vscode.window.showInformationMessage(selectText + " 已暂存");
       }
 
