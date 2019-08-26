@@ -11,14 +11,14 @@ import * as vscode from 'vscode';
 import { pkgInfo, supportLanguages } from '../../utils/utils';
 
 type AnnotationType = 'block' | 'title' | 'detail';
-let { workspace, window } = vscode;
+let { workspace, window, Position, Selection, Range } = vscode;
 let endAnnotationStack: Array<string> = [];
 let isStart = true;
 
 const endAnnotationMaker = (value: string, annotationWidth, annotationIntends): string | boolean => {
 
   let newAnnotation = '/*';
-  let a = annotationWidth - value.length - 13;
+  let a = annotationWidth - value.length - 9;
   for (let j = 0; j < annotationWidth; j++) {
     if (j > 0 && j < a) { newAnnotation += '='; }
     if (j === a) { newAnnotation += ' ' + value + ' '; }
@@ -36,13 +36,13 @@ const multiAnnotationMaker = (
   startLine: number,
   endLine: number,
 ): string => {
-  let EOL = vscode.window.activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
+  let EOL = window.activeTextEditor.document.eol === 2 ? '\r\n' : '\n';
   let newAnnotation = '/**';
 
   for (let i = startLine; i <= endLine; i++) {
     let lineText;
     if (!content) {
-      lineText = vscode.window.activeTextEditor.document.lineAt(i).text;
+      lineText = window.activeTextEditor.document.lineAt(i).text;
     } else {
       lineText = content[i - startLine];
     }
@@ -111,13 +111,13 @@ const handleBlockName = (text: string): string | boolean => {
 };
 
 const blockMaker = (annotationWidth, annotationIntends): void => {
-  let activeTextEditor = vscode.window.activeTextEditor;
+  let activeTextEditor = window.activeTextEditor;
   let selectionLine = activeTextEditor.selection;
   let cursorLine = selectionLine.active.line;
   let cursorLineText = activeTextEditor.document.lineAt(cursorLine).text;
-  let startPos = new vscode.Position(cursorLine, 0);
-  let endPos = new vscode.Position(cursorLine, annotationWidth);
-  let range = new vscode.Range(startPos, endPos);
+  let startPos = new Position(cursorLine, 0);
+  let endPos = new Position(cursorLine, annotationWidth);
+  let range = new Range(startPos, endPos);
 
   if (isStart) {
     let matches = <string>handleBlockName(cursorLineText);
@@ -150,7 +150,7 @@ const blockMaker = (annotationWidth, annotationIntends): void => {
       editor.replace(range, <string>afterEditString);
     });
   } else if (cursorLineText !== '') {
-    vscode.window.showWarningMessage('请先释放闭合注释');
+    window.showWarningMessage('请先释放闭合注释');
   }
 };
 
@@ -162,11 +162,11 @@ const multiMaker = (annotationWidth) => {
   let annotation = multiAnnotationMaker(null, annotationWidth, startLine, endLine);
   let endLineLen = activeTextEditor.document.lineAt(endLine).text.length;
 
-  let sPos = new vscode.Position(startLine, 0);
-  let ePos = new vscode.Position(endLine, endLineLen);
+  let sPos = new Position(startLine, 0);
+  let ePos = new Position(endLine, endLineLen);
 
   activeTextEditor.edit(editor => {
-    editor.replace(new vscode.Selection(sPos, ePos), annotation);
+    editor.replace(new Selection(sPos, ePos), annotation);
   });
 };
 
@@ -174,7 +174,7 @@ const multiMaker = (annotationWidth) => {
 const titleMaker = (annotationWidth) => {
   let activeTextEditor = window.activeTextEditor;
   // 自定义注释内容 
-  // let settings = vscode.workspace.getConfiguration('bana.annotation');
+  // let settings = workspace.getConfiguration('bana.annotation');
   let pkg = pkgInfo();
 
   if (pkg) {
@@ -191,7 +191,7 @@ const titleMaker = (annotationWidth) => {
     let endLine = cursorLine + content.length - 1;
     let annotation = multiAnnotationMaker(content, annotationWidth, cursorLine, endLine);
     activeTextEditor.edit(editor => {
-      editor.insert(new vscode.Position(cursorLine, 0), annotation);
+      editor.insert(new Position(cursorLine, 0), annotation);
     });
   } else {
     return;
