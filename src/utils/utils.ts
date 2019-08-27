@@ -9,7 +9,9 @@ export const supportLanguages = [
   'javascriptreact',
   'css',
   'scss',
-  'less'
+  'less',
+  'html',
+  'htm'
 ];
 
 export const randomNumber = (min: number, max: number): number =>
